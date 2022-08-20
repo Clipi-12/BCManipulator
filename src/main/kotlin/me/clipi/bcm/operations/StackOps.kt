@@ -125,7 +125,7 @@ public class DelegateIfInstance(
             else thisInstanceOfChecker,  // push this; push instanceOf; instanceof;
             ifFalseGoToLabel,  // if i == 0 -> goto _usualExec_;
             delegate, // pushAll args; INVOKEXXX pckg/clazz/method (paramTypes)X;
-            TypeCasting.to(returnType),
+            if (returnType.represents(Void.TYPE)) StackManipulation.Trivial.INSTANCE else TypeCasting.to(returnType),
             returnStat,  // XReturn
             addLabel // _usualExec_:
         )
