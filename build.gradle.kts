@@ -5,18 +5,22 @@ plugins {
     `maven-publish`
 }
 
+group = "me.clipi"
+version = "1.0"
+
 kotlin {
     explicitApi()
 }
 
 publishing {
+    publications {
+        create<MavenPublication>("MainProject")
+    }
     repositories {
         mavenLocal()
     }
 }
 
-group = "me.clipi"
-version = "1.0"
 
 dependencies {
     implementation(kotlin("stdlib-jdk8", ktVer))
