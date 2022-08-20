@@ -23,7 +23,6 @@ publishing {
     }
 }
 
-
 dependencies {
     implementation(kotlin("stdlib-jdk8", ktVer))
     implementation(kotlin("reflect", ktVer))

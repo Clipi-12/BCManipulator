@@ -17,7 +17,13 @@ public object MethodInjector {
         vararg params: Class<*>
     ): Unit = delegateIfInstanceOf(clazz, clazz, delegateTo, methodName, *params)
 
-    @Suppress("MemberVisibilityCanBePrivate")
+    public fun <C> delegateIfInstanceOf(
+        clazz: Class<C>,
+        instanceOf: Class<out C>,
+        methodName: String,
+        vararg params: Class<*>
+    ): Unit = delegateIfInstanceOf(clazz, instanceOf, instanceOf, methodName, *params)
+
     public fun <C> delegateIfInstanceOf(
         clazz: Class<C>,
         instanceOf: Class<out C>,
