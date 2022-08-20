@@ -191,7 +191,10 @@ public class Delegate(
         pushArgs = when {
             pushThisBeforeInvoking.first -> Array(params.size + 1) { i ->
                 when (i) {
-                    0 -> MethodVariableAccess.REFERENCE.loadFrom(stackIndex++) // push this;
+                    0 -> Compound(
+                        MethodVariableAccess.REFERENCE.loadFrom(stackIndex++),
+                        TypeCasting.to(this.method.parameters[0].type)
+                    ) // push this;
                     else -> pushActualArgs(i - 1)
                 }
             }
