@@ -5,6 +5,10 @@ plugins {
     `maven-publish`
 }
 
+kotlin {
+    explicitApi()
+}
+
 publishing {
     repositories {
         mavenLocal()

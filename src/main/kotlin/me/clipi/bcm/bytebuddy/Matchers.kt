@@ -6,13 +6,13 @@ import net.bytebuddy.description.type.TypeDescription
 import net.bytebuddy.matcher.ElementMatcher
 import net.bytebuddy.matcher.ElementMatchers
 
-fun getMatcherOfMethodWithSelfParam(
-        methodName: String,
-        clazz: Class<*>,
-        vararg params: Class<*>
+public fun getMatcherOfMethodWithSelfParam(
+    methodName: String,
+    clazz: Class<*>,
+    vararg params: Class<*>
 ): ElementMatcher.Junction<MethodDescription> {
     var matcher = ElementMatchers.named<NamedElement>(methodName)
-            .and(ElementMatchers.takesArguments(params.size + 1))
+        .and(ElementMatchers.takesArguments(params.size + 1))
     matcher = matcher.and(ElementMatchers.takesArgument(0, ElementMatchers.isSuperTypeOf(clazz)))
     for (i in params.indices) {
         matcher = matcher.and(ElementMatchers.takesArgument(i + 1, ElementMatchers.isSuperTypeOf(params[i])))
@@ -20,9 +20,9 @@ fun getMatcherOfMethodWithSelfParam(
     return matcher
 }
 
-fun getMatcherOfMethod(
-        methodName: String,
-        vararg params: Class<*>
+public fun getMatcherOfMethod(
+    methodName: String,
+    vararg params: Class<*>
 ): ElementMatcher.Junction<MethodDescription> {
     var matcher = ElementMatchers.named<NamedElement>(methodName).and(ElementMatchers.takesArguments(params.size))
     for (i in params.indices) {
@@ -31,9 +31,9 @@ fun getMatcherOfMethod(
     return matcher
 }
 
-fun getMethodFromClassAndFilter(
-        clazz: TypeDescription,
-        filter: ElementMatcher<MethodDescription>
+public fun getMethodFromClassAndFilter(
+    clazz: TypeDescription,
+    filter: ElementMatcher<MethodDescription>
 ): MethodDescription.InDefinedShape {
     return clazz.declaredMethods.filter(filter).only
 }

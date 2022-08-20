@@ -15,25 +15,25 @@ import net.bytebuddy.pool.TypePool
 import net.bytebuddy.utility.CompoundList
 import net.bytebuddy.utility.OpenedClassReader
 
-class InjectAtHead constructor(
-        private val methodMatcher: ElementMatcher<MethodDescription>,
-        private val impl: ByteCodeAppender
-) : AsmVisitorWrapper.AbstractBase() {
-
+public class InjectAtHead(
+    private val methodMatcher: ElementMatcher<MethodDescription>,
+    private val impl: ByteCodeAppender
+) :
+    AsmVisitorWrapper.AbstractBase() {
     override fun wrap(
-            instrumentedType: TypeDescription,
-            classVisitor: ClassVisitor,
-            implementationContext: Implementation.Context,
-            typePool: TypePool,
-            fields: FieldList<FieldDescription.InDefinedShape?>,
-            methods: MethodList<*>,
-            writerFlags: Int,
-            readerFlags: Int
+        instrumentedType: TypeDescription,
+        classVisitor: ClassVisitor,
+        implementationContext: Implementation.Context,
+        typePool: TypePool,
+        fields: FieldList<FieldDescription.InDefinedShape?>,
+        methods: MethodList<*>,
+        writerFlags: Int,
+        readerFlags: Int
     ): ClassVisitor {
         val mappedMethods: HashMap<String, MethodDescription> = HashMap()
         for (methodDescription in CompoundList.of(
-                methods,
-                MethodDescription.Latent.TypeInitializer(instrumentedType)
+            methods,
+            MethodDescription.Latent.TypeInitializer(instrumentedType)
         )) {
             mappedMethods[methodDescription.internalName + methodDescription.descriptor] = methodDescription
         }
@@ -41,36 +41,36 @@ class InjectAtHead constructor(
     }
 
     private class ClassV(
-            classVisitor: ClassVisitor?,
-            private val methodMatcher: ElementMatcher<MethodDescription>,
-            private val methods: HashMap<String, MethodDescription>,
-            private val impl: ByteCodeAppender,
-            private val implementationContext: Implementation.Context
+        classVisitor: ClassVisitor?,
+        private val methodMatcher: ElementMatcher<MethodDescription>,
+        private val methods: HashMap<String, MethodDescription>,
+        private val impl: ByteCodeAppender,
+        private val implementationContext: Implementation.Context
     ) : ClassVisitor(OpenedClassReader.ASM_API, classVisitor) {
         override fun visitMethod(
-                modifiers: Int,
-                internalName: String,
-                descriptor: String,
-                signature: String?,
-                exception: Array<String?>?
+            modifiers: Int,
+            internalName: String,
+            descriptor: String,
+            signature: String?,
+            exception: Array<String?>?
         ): MethodVisitor? {
             val methodVisitor =
-                    super.visitMethod(modifiers, internalName, descriptor, signature, exception) ?: return null
+                super.visitMethod(modifiers, internalName, descriptor, signature, exception) ?: return null
             val methodDescription = methods[internalName + descriptor]
             return if (methodDescription == null || !methodMatcher.matches(methodDescription)) methodVisitor else MethodV(
-                    methodVisitor,
-                    impl,
-                    implementationContext,
-                    methodDescription
+                methodVisitor,
+                impl,
+                implementationContext,
+                methodDescription
             )
         }
     }
 
     private class MethodV(
-            methodVisitor: MethodVisitor,
-            private val impl: ByteCodeAppender,
-            private val implementationContext: Implementation.Context,
-            private val methodDescription: MethodDescription
+        methodVisitor: MethodVisitor,
+        private val impl: ByteCodeAppender,
+        private val implementationContext: Implementation.Context,
+        private val methodDescription: MethodDescription
     ) : MethodVisitor(OpenedClassReader.ASM_API, methodVisitor) {
         private lateinit var size: ByteCodeAppender.Size
 
@@ -90,8 +90,8 @@ class InjectAtHead constructor(
          */
         override fun visitMaxs(maxStack: Int, maxLocals: Int) {
             mv.visitMaxs(
-                    size.operandStackSize.coerceAtLeast(maxStack),
-                    size.localVariableSize.coerceAtLeast(maxLocals)
+                size.operandStackSize.coerceAtLeast(maxStack),
+                size.localVariableSize.coerceAtLeast(maxLocals)
             )
         }
     }

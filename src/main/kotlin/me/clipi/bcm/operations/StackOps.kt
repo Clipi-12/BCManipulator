@@ -34,45 +34,45 @@ import kotlin.reflect.jvm.javaConstructor
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaMethod
 
-class DelegateIfInstance(
-        clazz: Class<*>,
-        instanceOf: Class<*>,
-        delegateTo: Class<*>,
-        matcherClazz: ElementMatcher<MethodDescription>,
-        matcherDelegateTo: ElementMatcher.Junction<MethodDescription>,
-        vararg params: Class<*>
+public class DelegateIfInstance(
+    clazz: Class<*>,
+    instanceOf: Class<*>,
+    delegateTo: Class<*>,
+    matcherClazz: ElementMatcher<MethodDescription>,
+    matcherDelegateTo: ElementMatcher.Junction<MethodDescription>,
+    vararg params: Class<*>
 ) : BytecodeOperation() {
-    companion object Factory {
-        fun <C> create(
-                clazz: Class<C>,
-                instanceOf: Class<out C>,
-                delegateTo: Class<*>,
-                methodName: String,
-                vararg params: Class<*>
-        ) = create(
-                clazz,
-                instanceOf,
-                delegateTo,
-                getMatcherOfMethod(methodName, *params),
-                getMatcherOfMethodWithSelfParam(methodName, instanceOf, *params),
-                *params
+    public companion object Factory {
+        public fun <C> create(
+            clazz: Class<C>,
+            instanceOf: Class<out C>,
+            delegateTo: Class<*>,
+            methodName: String,
+            vararg params: Class<*>
+        ): DelegateIfInstance = create(
+            clazz,
+            instanceOf,
+            delegateTo,
+            getMatcherOfMethod(methodName, *params),
+            getMatcherOfMethodWithSelfParam(methodName, instanceOf, *params),
+            *params
         )
 
         @Suppress("MemberVisibilityCanBePrivate")
-        fun <C> create(
-                clazz: Class<C>,
-                instanceOf: Class<out C>,
-                delegateTo: Class<*>,
-                matcherClazz: ElementMatcher<MethodDescription>,
-                matcherDelegateTo: ElementMatcher.Junction<MethodDescription>,
-                vararg params: Class<*>
-        ) = DelegateIfInstance(
-                clazz,
-                instanceOf,
-                delegateTo,
-                matcherClazz,
-                matcherDelegateTo,
-                *params
+        public fun <C> create(
+            clazz: Class<C>,
+            instanceOf: Class<out C>,
+            delegateTo: Class<*>,
+            matcherClazz: ElementMatcher<MethodDescription>,
+            matcherDelegateTo: ElementMatcher.Junction<MethodDescription>,
+            vararg params: Class<*>
+        ): DelegateIfInstance = DelegateIfInstance(
+            clazz,
+            instanceOf,
+            delegateTo,
+            matcherClazz,
+            matcherDelegateTo,
+            *params
         )
     }
 
@@ -83,7 +83,7 @@ class DelegateIfInstance(
     private val delegateTo: Class<*>
     private val instanceOf: TypeDescription
     private val thisInstanceOfChecker: ThisInstanceOf
-    private val delegate: Invoke
+    private val delegate: Delegate
     private val ifFalseGoToLabel: IfFalseGoToLabel
     private val addLabel: AddLabel
 
@@ -94,40 +94,40 @@ class DelegateIfInstance(
         returnType = getMethodFromClassAndFilter(this.clazz, matcherClazz).returnType.asErasure()
         returnStat = MethodReturn.of(returnType)
         if (!returnType.isInHierarchyWith(
-                        getMethodFromClassAndFilter(
-                                TypeDescription.ForLoadedType.of(delegateTo),
-                                methodMatcher
-                        ).returnType.asErasure()
-                )
+                getMethodFromClassAndFilter(
+                    TypeDescription.ForLoadedType.of(delegateTo),
+                    methodMatcher
+                ).returnType.asErasure()
+            )
         ) throw AssertionError("The delegated method must return an object that can be casted safely to the original method's return type")
 
         val usualExec = Label()
         ifFalseGoToLabel = IfFalseGoToLabel(usualExec)
         addLabel = AddLabel(usualExec, AddLabel.Frame.SAME)
         thisInstanceOfChecker = ThisInstanceOf(instanceOf, clazz.classLoader)
-        delegate = Invoke(
-                delegateTo,
-                methodMatcher,
-                params,
-                true to true,
-                clazz.classLoader
+        delegate = Delegate(
+            delegateTo,
+            methodMatcher,
+            params,
+            true to true,
+            clazz.classLoader
         )
     }
 
 
     override fun execute(
-            methodVisitor: MethodVisitor,
-            implementationContext: Implementation.Context,
-            instrumentedMethod: MethodDescription
+        methodVisitor: MethodVisitor,
+        implementationContext: Implementation.Context,
+        instrumentedMethod: MethodDescription
     ): StackOperation.Compound {
         return StackOperation.Compound(
-                if (clazz.isAssignableTo(instanceOf)) IntegerConstant.forValue(true)
-                else thisInstanceOfChecker,  // push this; push instanceOf; instanceof;
-                ifFalseGoToLabel,  // if i == 0 -> goto _usualExec_;
-                delegate, // pushAll args; INVOKEXXX pckg/clazz/method (paramTypes)X;
-                TypeCasting.to(returnType),
-                returnStat,  // XReturn
-                addLabel // _usualExec_:
+            if (clazz.isAssignableTo(instanceOf)) IntegerConstant.forValue(true)
+            else thisInstanceOfChecker,  // push this; push instanceOf; instanceof;
+            ifFalseGoToLabel,  // if i == 0 -> goto _usualExec_;
+            delegate, // pushAll args; INVOKEXXX pckg/clazz/method (paramTypes)X;
+            TypeCasting.to(returnType),
+            returnStat,  // XReturn
+            addLabel // _usualExec_:
         )
     }
 
@@ -144,16 +144,16 @@ class DelegateIfInstance(
 
 }
 
-class ThisInstanceOf constructor(private val clazz: Class<*>, private val classLoader: ClassLoader) :
-        StackOperation() {
+public class ThisInstanceOf(private val clazz: Class<*>, private val classLoader: ClassLoader) :
+    StackOperation() {
     override fun execute(
-            methodVisitor: MethodVisitor,
-            implementationContext: Implementation.Context
+        methodVisitor: MethodVisitor,
+        implementationContext: Implementation.Context
     ): StackManipulation.Size {
         MakeClassAccessible(clazz, classLoader)
         return Compound(
-                MethodVariableAccess.REFERENCE.loadFrom(0), // push this;
-                InstanceCheck.of(TypeDescription.ForLoadedType.of(clazz)) // push clazz; instanceof;
+            MethodVariableAccess.REFERENCE.loadFrom(0), // push this;
+            InstanceCheck.of(TypeDescription.ForLoadedType.of(clazz)) // push clazz; instanceof;
         ).apply(methodVisitor, implementationContext)
     }
 }
@@ -164,16 +164,16 @@ class ThisInstanceOf constructor(private val clazz: Class<*>, private val classL
  * method if the second element is false. If both the first and the second element are true,
  * the method will be treated as a static method that takes $this$ as its first parameter
  */
-class Invoke(
-        private val clazz: Class<*>,
-        method: ElementMatcher<MethodDescription>,
-        private val params: Array<out Class<*>>,
-        private val pushThisBeforeInvoking: Pair<Boolean, Boolean>,
-        private val classLoader: ClassLoader,
+public class Delegate(
+    private val clazz: Class<*>,
+    method: ElementMatcher<MethodDescription>,
+    private val params: Array<out Class<*>>,
+    private val pushThisBeforeInvoking: Pair<Boolean, Boolean>,
+    private val classLoader: ClassLoader,
 ) : StackOperation() {
     private val pushArgs: Array<StackManipulation>
     private val method: MethodDescription.InDefinedShape =
-            getMethodFromClassAndFilter(TypeDescription.ForLoadedType.of(clazz), method)
+        getMethodFromClassAndFilter(TypeDescription.ForLoadedType.of(clazz), method)
 
 
     init {
@@ -201,32 +201,32 @@ class Invoke(
     }
 
     override fun execute(
-            methodVisitor: MethodVisitor,
-            implementationContext: Implementation.Context
+        methodVisitor: MethodVisitor,
+        implementationContext: Implementation.Context
     ): StackManipulation.Size {
         MakeClassAccessible(clazz, classLoader)
         return Compound(
-                Compound(*pushArgs),  // pushAll args;
-                MethodInvocation.invoke(method)  // INVOKEXXX pckg/clazz/method (paramTypes)X;
+            Compound(*pushArgs),  // pushAll args;
+            MethodInvocation.invoke(method)  // INVOKEXXX pckg/clazz/method (paramTypes)X;
         ).apply(methodVisitor, implementationContext)
     }
 }
 
-class TryCatch(private vararg val run: StackManipulation) : StackOperation() {
-    companion object {
+public class TryCatch(private vararg val run: StackManipulation) : StackOperation() {
+    public companion object {
         private val runtimeExceptionConstructor: MethodDescription.InDefinedShape
         private val uncheckedIoExceptionConstructor: MethodDescription.InDefinedShape
 
         init {
             runtimeExceptionConstructor = MethodDescription.ForLoadedConstructor(
-                    @Suppress("RedundantLambdaOrAnonymousFunction")
-                    { f: KFunction1<Throwable, RuntimeException> -> f }(::RuntimeException)
-                            .javaConstructor!!
+                @Suppress("RedundantLambdaOrAnonymousFunction")
+                { f: KFunction1<Throwable, RuntimeException> -> f }(::RuntimeException)
+                    .javaConstructor!!
             )
             uncheckedIoExceptionConstructor = MethodDescription.ForLoadedConstructor(
-                    @Suppress("RedundantLambdaOrAnonymousFunction")
-                    { f: KFunction1<IOException, UncheckedIOException> -> f }(::UncheckedIOException)
-                            .javaConstructor!!
+                @Suppress("RedundantLambdaOrAnonymousFunction")
+                { f: KFunction1<IOException, UncheckedIOException> -> f }(::UncheckedIOException)
+                    .javaConstructor!!
             )
         }
     }
@@ -239,63 +239,63 @@ class TryCatch(private vararg val run: StackManipulation) : StackOperation() {
     private val _throw = Label()
 
     override fun execute(
-            methodVisitor: MethodVisitor,
-            implementationContext: Implementation.Context
+        methodVisitor: MethodVisitor,
+        implementationContext: Implementation.Context
     ): StackManipulation.Size {
         methodVisitor.visitTryCatchBlock(
-                start,
-                end,
-                direct,
-                Type.getInternalName(RuntimeException::class.java)
+            start,
+            end,
+            direct,
+            Type.getInternalName(RuntimeException::class.java)
         )
         methodVisitor.visitTryCatchBlock(
-                start,
-                end,
-                wrapIo,
-                Type.getInternalName(IOException::class.java)
+            start,
+            end,
+            wrapIo,
+            Type.getInternalName(IOException::class.java)
         )
         methodVisitor.visitTryCatchBlock(start, end, wrap, Type.getInternalName(Exception::class.java))
 
         return Compound.Parallel(
-                Compound.Parallel.EndsInRetOrThr(
-                        GOTO(start),
-                        Compound.Parallel(
-                                Compound(
-                                        AddLabel(direct, AddLabel.Frame.NEW_STACK(RuntimeException::class.java)),
-                                        GOTO(_throw),
-                                ),
-                                Compound(
-                                        AddLabel(wrapIo, AddLabel.Frame.NEW_STACK(IOException::class.java)),
-                                        TypeCreation.of(TypeDescription.ForLoadedType.of(UncheckedIOException::class.java)),
-                                        Duplication.SINGLE,
-                                        ROT,
-                                        MethodInvocation.invoke(uncheckedIoExceptionConstructor),
-                                        GOTO(_throw),
-                                ),
-                                Compound(
-                                        AddLabel(wrap, AddLabel.Frame.NEW_STACK(Exception::class.java)),
-                                        TypeCreation.of(TypeDescription.ForLoadedType.of(RuntimeException::class.java)),
-                                        Duplication.SINGLE,
-                                        ROT,
-                                        MethodInvocation.invoke(runtimeExceptionConstructor)
-                                )
-                        ),
-                        AddLabel(_throw, AddLabel.Frame.NEW_STACK(RuntimeException::class.java, false)),
-                        Throw.INSTANCE
+            Compound.Parallel.EndsInRetOrThr(
+                GOTO(start),
+                Compound.Parallel(
+                    Compound(
+                        AddLabel(direct, AddLabel.Frame.NEW_STACK(RuntimeException::class.java)),
+                        GOTO(_throw),
+                    ),
+                    Compound(
+                        AddLabel(wrapIo, AddLabel.Frame.NEW_STACK(IOException::class.java)),
+                        TypeCreation.of(TypeDescription.ForLoadedType.of(UncheckedIOException::class.java)),
+                        Duplication.SINGLE,
+                        ROT,
+                        MethodInvocation.invoke(uncheckedIoExceptionConstructor),
+                        GOTO(_throw),
+                    ),
+                    Compound(
+                        AddLabel(wrap, AddLabel.Frame.NEW_STACK(Exception::class.java)),
+                        TypeCreation.of(TypeDescription.ForLoadedType.of(RuntimeException::class.java)),
+                        Duplication.SINGLE,
+                        ROT,
+                        MethodInvocation.invoke(runtimeExceptionConstructor)
+                    )
                 ),
-                Compound(
-                        AddLabel(start, AddLabel.Frame.SAME),
-                        *run,
-                        AddLabel(end)
-                )
+                AddLabel(_throw, AddLabel.Frame.NEW_STACK(RuntimeException::class.java, false)),
+                Throw.INSTANCE
+            ),
+            Compound(
+                AddLabel(start, AddLabel.Frame.SAME),
+                *run,
+                AddLabel(end)
+            )
         ).apply(methodVisitor, implementationContext)
     }
 }
 
-class IfFalseGoToLabel constructor(private val label: Label) : StackOperation() {
+public class IfFalseGoToLabel(private val label: Label) : StackOperation() {
     override fun execute(
-            methodVisitor: MethodVisitor,
-            implementationContext: Implementation.Context
+        methodVisitor: MethodVisitor,
+        implementationContext: Implementation.Context
     ): StackManipulation.Size {
         methodVisitor.visitJumpInsn(Opcodes.IFEQ, label) // if i == 0 -> goto _label_;
         return StackSize.SINGLE.toDecreasingSize()
@@ -313,52 +313,52 @@ class IfFalseGoToLabel constructor(private val label: Label) : StackOperation() 
     }
 }
 
-class AddLabel constructor(
-        private val label: Label,
-        private val frameChange: Frame = Frame.NOT_NEEDED
+public class AddLabel(
+    private val label: Label,
+    private val frameChange: Frame = Frame.NOT_NEEDED
 ) : StackOperation() {
     @Suppress("ClassName")
-    sealed class Frame {
-        object NOT_NEEDED : Frame()
-        object SAME : Frame()
-        data class NEW_STACK(val newStack: Class<*>, val increaseStackSize: Boolean = true) : Frame()
-        data class NEW_LOCAL(val newLocal: Class<*>, val increaseStackSize: Boolean = true) : Frame()
+    public sealed class Frame {
+        public object NOT_NEEDED : Frame()
+        public object SAME : Frame()
+        public data class NEW_STACK(val newStack: Class<*>, val increaseStackSize: Boolean = true) : Frame()
+        public data class NEW_LOCAL(val newLocal: Class<*>, val increaseStackSize: Boolean = true) : Frame()
     }
 
     override fun execute(
-            methodVisitor: MethodVisitor,
-            implementationContext: Implementation.Context
+        methodVisitor: MethodVisitor,
+        implementationContext: Implementation.Context
     ): StackManipulation.Size {
         methodVisitor.visitLabel(label) // _label_:
         if (implementationContext.classFileVersion.isAtLeast(ClassFileVersion.JAVA_V6)) {
             when (frameChange) {
                 Frame.NOT_NEEDED -> {}
                 Frame.SAME -> methodVisitor.visitFrame(
-                        Opcodes.F_SAME,
-                        0,
-                        arrayOf(),
-                        0,
-                        arrayOf()
+                    Opcodes.F_SAME,
+                    0,
+                    arrayOf(),
+                    0,
+                    arrayOf()
                 ) // [frame: F_SAME]
 
                 is Frame.NEW_STACK -> {
                     methodVisitor.visitFrame(
-                            Opcodes.F_SAME1,
-                            0,
-                            arrayOf(),
-                            1,
-                            arrayOf(Type.getInternalName(frameChange.newStack))
+                        Opcodes.F_SAME1,
+                        0,
+                        arrayOf(),
+                        1,
+                        arrayOf(Type.getInternalName(frameChange.newStack))
                     ) // [frame: F_SAME1]
                     if (frameChange.increaseStackSize) return StackSize.SINGLE.toIncreasingSize()
                 }
 
                 is Frame.NEW_LOCAL -> {
                     methodVisitor.visitFrame(
-                            Opcodes.F_APPEND,
-                            1,
-                            arrayOf(Type.getInternalName(frameChange.newLocal)),
-                            0,
-                            arrayOf()
+                        Opcodes.F_APPEND,
+                        1,
+                        arrayOf(Type.getInternalName(frameChange.newLocal)),
+                        0,
+                        arrayOf()
                     ) // [frame: F_APPEND]
                     if (frameChange.increaseStackSize) ++newLocals
                 }
@@ -380,7 +380,7 @@ class AddLabel constructor(
 }
 
 
-class MakeClassAccessible(clazz: Class<*>, to: ClassLoader) {
+public class MakeClassAccessible(clazz: Class<*>, to: ClassLoader) {
     private fun hasToBeInjected(clazz: Class<*>) = try {
         classLoader.loadClass(clazz.name)
         false
@@ -422,9 +422,9 @@ class MakeClassAccessible(clazz: Class<*>, to: ClassLoader) {
             ByteBuddyInstaller.install()
             alsoLoad.forEach {
                 ByteBuddy()
-                        .redefine(it)
-                        .make()
-                        .load(classLoader, ClassLoadingStrategy.Default.INJECTION)
+                    .redefine(it)
+                    .make()
+                    .load(classLoader, ClassLoadingStrategy.Default.INJECTION)
             }
 
             if (DEBUG) println("Starting sanity check for the loaded classes")
@@ -437,14 +437,14 @@ class MakeClassAccessible(clazz: Class<*>, to: ClassLoader) {
 /**
  * @see [net.bytebuddy.implementation.bytecode.constant.SerializedConstant]
  */
-object SerializedConstant {
+public object SerializedConstant {
     /**
      * A charset that does not change the supplied byte array upon encoding or decoding.
      */
     private val CHARSET = StandardCharsets.ISO_8859_1
     private val CHARSET_FIELD = StandardCharsets::ISO_8859_1.javaField!!
 
-    fun of(obj: Serializable?): StackManipulation {
+    public fun of(obj: Serializable?): StackManipulation {
         if (obj == null) return NullConstant.INSTANCE
         val byteArrayOutputStream = ByteArrayOutputStream()
         ObjectOutputStream(byteArrayOutputStream).use { it.writeObject(obj) }
@@ -470,29 +470,29 @@ object SerializedConstant {
         }
 
         return StackOperation.Compound(
-                TypeCreation.of(TypeDescription.ForLoadedType.of(ObjectInputStream::class.java)),
-                Duplication.SINGLE,
-                TypeCreation.of(TypeDescription.ForLoadedType.of(ByteArrayInputStream::class.java)),
-                Duplication.SINGLE,
-                TextConstant(serialization),
-                FieldAccess.forField(FieldDescription.ForLoadedField(CHARSET_FIELD)).read(),
-                MethodInvocation.invoke(
-                        getMethodFromClassAndFilter(
-                                TypeDescription.STRING,
-                                getMatcherOfMethod("getBytes", Charset::class.java)
-                        )
-                ),
-                MethodInvocation.invoke(
-                        MethodDescription.ForLoadedConstructor(
-                                @Suppress("RedundantLambdaOrAnonymousFunction")
-                                { f: KFunction1<ByteArray, ByteArrayInputStream> -> f }(::ByteArrayInputStream).javaConstructor!!
-                        )
-                ),
-                MethodInvocation.invoke(MethodDescription.ForLoadedConstructor(::ObjectInputStream.javaConstructor!!)),
-                Duplication.SINGLE,
-                MethodInvocation.invoke(MethodDescription.ForLoadedMethod(ObjectInputStream::readObject.javaMethod!!)),
-                SWAP,
-                MethodInvocation.invoke(MethodDescription.ForLoadedMethod(ObjectInputStream::close.javaMethod!!)),
+            TypeCreation.of(TypeDescription.ForLoadedType.of(ObjectInputStream::class.java)),
+            Duplication.SINGLE,
+            TypeCreation.of(TypeDescription.ForLoadedType.of(ByteArrayInputStream::class.java)),
+            Duplication.SINGLE,
+            TextConstant(serialization),
+            FieldAccess.forField(FieldDescription.ForLoadedField(CHARSET_FIELD)).read(),
+            MethodInvocation.invoke(
+                getMethodFromClassAndFilter(
+                    TypeDescription.STRING,
+                    getMatcherOfMethod("getBytes", Charset::class.java)
+                )
+            ),
+            MethodInvocation.invoke(
+                MethodDescription.ForLoadedConstructor(
+                    @Suppress("RedundantLambdaOrAnonymousFunction")
+                    { f: KFunction1<ByteArray, ByteArrayInputStream> -> f }(::ByteArrayInputStream).javaConstructor!!
+                )
+            ),
+            MethodInvocation.invoke(MethodDescription.ForLoadedConstructor(::ObjectInputStream.javaConstructor!!)),
+            Duplication.SINGLE,
+            MethodInvocation.invoke(MethodDescription.ForLoadedMethod(ObjectInputStream::readObject.javaMethod!!)),
+            SWAP,
+            MethodInvocation.invoke(MethodDescription.ForLoadedMethod(ObjectInputStream::close.javaMethod!!)),
         )
     }
 }

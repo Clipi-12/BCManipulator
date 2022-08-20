@@ -17,8 +17,8 @@ private object Clinit {
     }
 }
 
-abstract class StackOperation : StackManipulation.AbstractBase() {
-    protected var initialNextLocal = 0
+public abstract class StackOperation : StackManipulation.AbstractBase() {
+    protected var initialNextLocal: Int = 0
         private set
 
     internal fun initialNextLocal(value: Int) {
@@ -26,15 +26,15 @@ abstract class StackOperation : StackManipulation.AbstractBase() {
     }
 
     internal var maxLocals = initialNextLocal
-    var newLocals = 0
+    public var newLocals: Int = 0
         protected set(value) {
             maxLocals = maxLocals.coerceAtLeast(value + initialNextLocal)
             field = value
         }
 
     final override fun apply(
-            methodVisitor: MethodVisitor,
-            implementationContext: Implementation.Context
+        methodVisitor: MethodVisitor,
+        implementationContext: Implementation.Context
     ): StackManipulation.Size {
         maxLocals = initialNextLocal
         newLocals = 0
@@ -42,17 +42,17 @@ abstract class StackOperation : StackManipulation.AbstractBase() {
     }
 
     protected abstract fun execute(
-            methodVisitor: MethodVisitor,
-            implementationContext: Implementation.Context
+        methodVisitor: MethodVisitor,
+        implementationContext: Implementation.Context
     ): StackManipulation.Size
 
     /**
      * @see [StackManipulation.Compound][apply]
      */
-    open class Compound(protected vararg val operations: StackManipulation) : StackOperation() {
+    public open class Compound(protected vararg val operations: StackManipulation) : StackOperation() {
         override fun execute(
-                methodVisitor: MethodVisitor,
-                implementationContext: Implementation.Context
+            methodVisitor: MethodVisitor,
+            implementationContext: Implementation.Context
         ): StackManipulation.Size {
             var size = StackManipulation.Size.ZERO
             for (op in operations) {
@@ -69,10 +69,10 @@ abstract class StackOperation : StackManipulation.AbstractBase() {
         }
 
 
-        class Parallel(vararg operations: StackManipulation) : Compound(*operations) {
+        public class Parallel(vararg operations: StackManipulation) : Compound(*operations) {
             override fun execute(
-                    methodVisitor: MethodVisitor,
-                    implementationContext: Implementation.Context
+                methodVisitor: MethodVisitor,
+                implementationContext: Implementation.Context
             ): StackManipulation.Size {
                 maxLocals = initialNextLocal
                 var size = 0
@@ -94,16 +94,16 @@ abstract class StackOperation : StackManipulation.AbstractBase() {
                 return StackManipulation.Size(sizeImpact ?: 0 /* They all were EndsInRetOrThr */, size)
             }
 
-            class EndsInRetOrThr(vararg operations: StackManipulation) : Compound(*operations)
+            public class EndsInRetOrThr(vararg operations: StackManipulation) : Compound(*operations)
         }
     }
 }
 
-abstract class BytecodeOperation : ByteCodeAppender {
+public abstract class BytecodeOperation : ByteCodeAppender {
     final override fun apply(
-            methodVisitor: MethodVisitor,
-            implementationContext: Implementation.Context,
-            instrumentedMethod: MethodDescription
+        methodVisitor: MethodVisitor,
+        implementationContext: Implementation.Context,
+        instrumentedMethod: MethodDescription
     ): ByteCodeAppender.Size {
         val op = execute(methodVisitor, implementationContext, instrumentedMethod)
         val maxLocals: Int
@@ -119,9 +119,9 @@ abstract class BytecodeOperation : ByteCodeAppender {
         return ByteCodeAppender.Size(opSize.maximalSize, maxLocals)
     }
 
-    abstract fun execute(
-            methodVisitor: MethodVisitor,
-            implementationContext: Implementation.Context,
-            instrumentedMethod: MethodDescription
+    public abstract fun execute(
+        methodVisitor: MethodVisitor,
+        implementationContext: Implementation.Context,
+        instrumentedMethod: MethodDescription
     ): StackManipulation
 }

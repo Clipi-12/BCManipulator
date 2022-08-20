@@ -1,4 +1,4 @@
-rootProject.name = "BCManipulator"
+rootProject.name = "bc-manipulator"
 
 pluginManagement {
     repositories {

@@ -8,20 +8,20 @@ import net.bytebuddy.jar.asm.Label
 import net.bytebuddy.jar.asm.MethodVisitor
 import net.bytebuddy.jar.asm.Opcodes
 
-object SWAP : StackOperation() {
+public object SWAP : StackOperation() {
     override fun execute(
-            methodVisitor: MethodVisitor,
-            implementationContext: Implementation.Context
+        methodVisitor: MethodVisitor,
+        implementationContext: Implementation.Context
     ): StackManipulation.Size {
         methodVisitor.visitInsn(Opcodes.SWAP)
         return StackManipulation.Size.ZERO
     }
 }
 
-class GOTO(private val label: Label) : StackOperation() {
+public class GOTO(private val label: Label) : StackOperation() {
     override fun execute(
-            methodVisitor: MethodVisitor,
-            implementationContext: Implementation.Context
+        methodVisitor: MethodVisitor,
+        implementationContext: Implementation.Context
     ): StackManipulation.Size {
         methodVisitor.visitJumpInsn(Opcodes.GOTO, label)
         return StackManipulation.Size.ZERO
@@ -37,27 +37,27 @@ class GOTO(private val label: Label) : StackOperation() {
  * this operation would modify the stack so that it would end up like so
  * > &nbsp;&nbsp;&nbsp;&nbsp;..., v<sub>**3**</sub>, v<sub>2</sub>, v<sub>**1**</sub>
  */
-object SWAP1 : StackOperation.Compound(
-        REVERSE_ROT,
-        SWAP
+public object SWAP1 : StackOperation.Compound(
+    REVERSE_ROT,
+    SWAP
 )
 
 /**
  * ***Non-standard operation.***
  * [ROT](https://www.forth.com/starting-forth/2-stack-manipulation-operators-arithmetic/#:~:text=Here%20is%20a%20list%20of%20several%20stack%20manipulation%20operators%3A)
  */
-object ROT : StackOperation.Compound(
-        REVERSE_ROT,
-        REVERSE_ROT
+public object ROT : StackOperation.Compound(
+    REVERSE_ROT,
+    REVERSE_ROT
 )
 
 /**
  * ***Non-standard operation.***
  * [OVER](https://www.forth.com/starting-forth/2-stack-manipulation-operators-arithmetic/#:~:text=Here%20is%20a%20list%20of%20several%20stack%20manipulation%20operators%3A)
  */
-object OVER : StackOperation.Compound(
-        Duplication.DOUBLE,
-        Removal.SINGLE
+public object OVER : StackOperation.Compound(
+    Duplication.DOUBLE,
+    Removal.SINGLE
 )
 
 /**
@@ -65,10 +65,10 @@ object OVER : StackOperation.Compound(
  * @see [ROT]
  */
 @Suppress("ClassName")
-object REVERSE_ROT : StackOperation() {
+public object REVERSE_ROT : StackOperation() {
     override fun execute(
-            methodVisitor: MethodVisitor,
-            implementationContext: Implementation.Context
+        methodVisitor: MethodVisitor,
+        implementationContext: Implementation.Context
     ): StackManipulation.Size {
         methodVisitor.visitInsn(Opcodes.DUP_X2)
         methodVisitor.visitInsn(Opcodes.POP)

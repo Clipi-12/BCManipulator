@@ -8,4 +8,4 @@ package me.clipi.bcm
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class Import(vararg val value: String)
+public annotation class Import(vararg val value: String)
