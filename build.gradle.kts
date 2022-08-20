@@ -14,7 +14,9 @@ kotlin {
 
 publishing {
     publications {
-        create<MavenPublication>("MainProject")
+        create<MavenPublication>("MainProject") {
+            from(components["java"])
+        }
     }
     repositories {
         mavenLocal()
