@@ -1,8 +1,9 @@
 val ktVer = "1.7.10"
 plugins {
+    id("co.uzzu.dotenv.gradle") version "2.0.0"
     kotlin("jvm") version "1.7.10"
     id("me.clipi.gradle") version "latest.release"
-    `maven-publish`
+    id("me.clipi.gradle.conventions.github-publish") version "latest.release"
 }
 
 group = "me.clipi"
