@@ -11,7 +11,7 @@ It also contains useful ASM visitors that allow injecting bytecode in different 
 ByteBuddy's runtime class creation and class redefinition.
 
 ## Getting Started
-To apply this plugin, you will have to use the maven-repository <https://clipi-repo.herokuapp.com/>.
+To use this project, you will have to register the maven-repository <https://clipi-repo.herokuapp.com/>.
 You will then be able to import it with the id `me.clipi.bc-manipulator`
 ### Gradle
 ##### Kotlin
