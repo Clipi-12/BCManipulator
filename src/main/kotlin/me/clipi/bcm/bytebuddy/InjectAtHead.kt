@@ -18,8 +18,7 @@ import net.bytebuddy.utility.OpenedClassReader
 public class InjectAtHead(
     private val methodMatcher: ElementMatcher<MethodDescription>,
     private val impl: ByteCodeAppender
-) :
-    AsmVisitorWrapper.AbstractBase() {
+) : AsmVisitorWrapper.AbstractBase() {
     override fun wrap(
         instrumentedType: TypeDescription,
         classVisitor: ClassVisitor,
