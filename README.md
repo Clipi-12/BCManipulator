@@ -1,6 +1,5 @@
 # BC-Manipulator
 ## A simple library with stack operations that can be used with [ByteBuddy](https://bytebuddy.net/)
-### Copyright (C) 2022  Clipi (GitHub: [Clipi-12](https://github.com/Clipi-12))
 
 This library provides stack operations that can be integrated into the ByteBuddy toolchain, such us
 * Simple operations like GOTO
@@ -10,6 +9,55 @@ This library provides stack operations that can be integrated into the ByteBuddy
 
 It also contains useful ASM visitors that allow injecting bytecode in different ways, supporting
 ByteBuddy's runtime class creation and class redefinition.
+
+## Getting Started
+To apply this plugin, you will have to use the maven-repository <https://clipi-repo.herokuapp.com/>.
+You will then be able to import it with the id `me.clipi.bc-manipulator`
+### Gradle
+##### Kotlin
+`build.gradle.kts`
+```kotlin
+repositories {
+    maven {
+        name = "Clipi"
+		url = uri("https://clipi-repo.herokuapp.com/")
+	}
+}
+dependencies {
+    implementation("me.clipi:bc-manipulator:latest.release")
+}
+```
+##### Groovy
+`build.gradle`
+```groovy
+repositories {
+    maven {
+        name = 'Clipi'
+		url = uri 'https://clipi-repo.herokuapp.com/'
+	}
+}
+dependencies {
+    implementation 'me.clipi:bc-manipulator:latest.release'
+}
+```
+### Maven
+`pom.xml`
+```xml
+<repositories>
+	<repository>
+		<id>clipi</id>
+		<url>https://clipi-repo.herokuapp.com/</url>
+	</repository>
+</repositories>
+
+<dependencies>
+	<dependency>
+		<groupId>me.clipi</groupId>
+		<artifactId>bc-manipulator</artifactId>
+		<version>${bc-manipulator-version}</version>
+	</dependency>
+</dependencies>
+```
 
 ## License
 > Lesser General Public License version 3
@@ -24,3 +72,5 @@ ByteBuddy's runtime class creation and class redefinition.
 > GNU Lesser General Public License for more details.  
 > You should have received a copy of the GNU Lesser General Public License
 > along with BC-Manipulator. If not, see <https://www.gnu.org/licenses/>.
+
+See also: [LIBRARIES.md](LIBRARIES.md)
