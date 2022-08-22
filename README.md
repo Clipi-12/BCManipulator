@@ -23,6 +23,7 @@ repositories {
 		url = uri("https://clipi-repo.herokuapp.com/")
 	}
 }
+
 dependencies {
     implementation("me.clipi:bc-manipulator:latest.release")
 }
@@ -36,6 +37,7 @@ repositories {
 		url = uri 'https://clipi-repo.herokuapp.com/'
 	}
 }
+
 dependencies {
     implementation 'me.clipi:bc-manipulator:latest.release'
 }
