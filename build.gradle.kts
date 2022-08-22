@@ -1,6 +1,6 @@
-val ktVer = "1.7.10"
+val ktVer = "1.5.31"
 plugins {
-    kotlin("jvm") version "1.7.10"
+    kotlin("jvm") version "1.5.31"
     id("me.clipi.gradle") version "latest.release"
     id("me.clipi.gradle.conventions.git-publish") version "latest.release"
 }
