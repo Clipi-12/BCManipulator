@@ -1,3 +1,22 @@
+/*
+ * BC-Manipulator, a simple library with stack operations that can be used with ByteBuddy
+ * Copyright (C) 2022  Clipi (GitHub: Clipi-12)
+ *
+ * This file is part of BC-Manipulator.
+ * BC-Manipulator is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * BC-Manipulator is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with BC-Manipulator.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package me.clipi.bcm.operations
 
 import net.bytebuddy.description.method.MethodDescription
@@ -82,8 +101,8 @@ public abstract class StackOperation : StackManipulation.AbstractBase() {
                     if (sizeImpact != null) {
                         if (op !is EndsInRetOrThr) check(sizeImpact == opSize.sizeImpact) {
                             return@check "Parallel stack operations must have the same size impact on the stack." +
-                                    "$op had an impact of ${opSize.sizeImpact} elements while" +
-                                    "the previous operation had an impact of $sizeImpact elements."
+                                "$op had an impact of ${opSize.sizeImpact} elements while" +
+                                "the previous operation had an impact of $sizeImpact elements."
                         }
                     } else if (op !is EndsInRetOrThr) {
                         sizeImpact = opSize.sizeImpact
